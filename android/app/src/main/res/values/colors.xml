@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Al-Madinah clock brand palette: mosque green + sand + gold -->
+    <color name="colorPrimary">#1F5C4D</color>
+    <color name="colorPrimaryDark">#153E34</color>
+    <color name="colorAccent">#B99A45</color>
+</resources>

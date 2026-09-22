@@ -1,0 +1,8 @@
+{
+	"appId": "com.madinah.clock",
+	"appName": "Al-Madinah al-Munawwarah clock",
+	"webDir": "dist",
+	"android": {
+		"allowMixedContent": false
+	}
+}
