@@ -115,6 +115,22 @@ export interface AnalogDialProps {
   lowPower?: boolean;
 }
 
+// 24-hour dial: hour ticks every 15° aligned with numerals 0–23, plus
+// half-hour ticks at +7.5° (a 60-tick/12-hour grid would misalign odd hours).
+const TICKS = Array.from({ length: 48 }, (_, i) => {
+  const theta = -i * 7.5;
+  const isHour = i % 2 === 0;
+  const [x1, y1] = point(R_TICK_OUT, theta);
+  const [x2, y2] = point(isHour ? R_TICK_IN_HOUR : R_TICK_IN_MIN, theta);
+  return { x1, y1, x2, y2, isHour };
+});
+
+const NUMERALS = Array.from({ length: 24 }, (_, n) => {
+  const theta = -n * 15; // hour N sits N*15° anti-clockwise from the top
+  const [x, y] = point(R_NUMERAL, theta);
+  return { n, x, y };
+});
+
 /**
  * 24-hour anti-clockwise dial. One full revolution of the hour hand per Islamic
  * day. Hour N sits at angle -N*15° from the top; all hands rotate with negative
@@ -130,22 +146,6 @@ function AnalogDialInner({ events, startMs, lowPower = false }: AnalogDialProps)
     const mid = (a1 + a2) / 2;
     const [lx, ly] = point(R_LABEL, mid);
     return { d: arcPath(R_ARC_OUT, R_ARC_IN, a1, a2), color: ARC_COLORS[i % ARC_COLORS.length], label: e.meta.ar, lx, ly };
-  });
-
-  // 24-hour dial: hour ticks every 15° aligned with numerals 0–23, plus
-  // half-hour ticks at +7.5° (a 60-tick/12-hour grid would misalign odd hours).
-  const ticks = Array.from({ length: 48 }, (_, i) => {
-    const theta = -i * 7.5;
-    const isHour = i % 2 === 0;
-    const [x1, y1] = point(R_TICK_OUT, theta);
-    const [x2, y2] = point(isHour ? R_TICK_IN_HOUR : R_TICK_IN_MIN, theta);
-    return { x1, y1, x2, y2, isHour };
-  });
-
-  const numerals = Array.from({ length: 24 }, (_, n) => {
-    const theta = -n * 15; // hour N sits N*15° anti-clockwise from the top
-    const [x, y] = point(R_NUMERAL, theta);
-    return { n, x, y };
   });
 
   return (
@@ -184,7 +184,7 @@ function AnalogDialInner({ events, startMs, lowPower = false }: AnalogDialProps)
       })}
 
       {/* minute / hour ticks */}
-      {ticks.map((t, i) => (
+      {TICKS.map((t, i) => (
         <line
           key={i}
           x1={t.x1}
@@ -198,7 +198,7 @@ function AnalogDialInner({ events, startMs, lowPower = false }: AnalogDialProps)
       ))}
 
       {/* Eastern Arabic hour numerals, anti-clockwise */}
-      {numerals.map(({ n, x, y }) => (
+      {NUMERALS.map(({ n, x, y }) => (
         <text
           key={n}
           x={x}
