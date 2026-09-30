@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   addDays,
   buildIslamicDaySchedule,
+  currentPeriod,
   estimateMadinahTimings,
   parseTiming,
   riyadhWallDate,
@@ -9,6 +10,7 @@ import {
   wallToUtcMs,
   type DayData,
   type WallDate,
+  type PrayerEvent,
 } from './timeEngine';
 
 /** Realistic Madinah timings (approximate late-September values). */
@@ -133,5 +135,29 @@ describe('estimateMadinahTimings (solar fallback)', () => {
     const summer = parseTiming(estimateMadinahTimings(day(2026, 6, 21)).Maghrib);
     const winter = parseTiming(estimateMadinahTimings(day(2025, 12, 21)).Maghrib);
     expect(summer[0] * 60 + summer[1]).toBeGreaterThan(winter[0] * 60 + winter[1]);
+  });
+});
+
+describe('currentPeriod', () => {
+  const mockEvents: PrayerEvent[] = [
+    { meta: { key: 'Maghrib', ar: '', en: '' }, timeMs: 1000, hoursSinceStart: 0 },
+    { meta: { key: 'Isha', ar: '', en: '' }, timeMs: 2000, hoursSinceStart: 1 },
+    { meta: { key: 'Fajr', ar: '', en: '' }, timeMs: 3000, hoursSinceStart: 2 },
+  ];
+
+  it('exact match: returns the event when nowMs exactly matches its timeMs', () => {
+    expect(currentPeriod(mockEvents, 2000)).toBe(mockEvents[1]);
+  });
+
+  it('between events: returns the most recent event before nowMs', () => {
+    expect(currentPeriod(mockEvents, 2500)).toBe(mockEvents[1]);
+  });
+
+  it('out of bounds before first: returns the first event', () => {
+    expect(currentPeriod(mockEvents, 500)).toBe(mockEvents[0]);
+  });
+
+  it('out of bounds after last: returns the last event', () => {
+    expect(currentPeriod(mockEvents, 3500)).toBe(mockEvents[2]);
   });
 });
