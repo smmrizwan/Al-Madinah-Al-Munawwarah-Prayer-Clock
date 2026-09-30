@@ -76,13 +76,6 @@ export function wallDateKey(w: WallDate): string {
   return `${w.year}-${mm}-${dd}`;
 }
 
-/** "DD-MM-YYYY" as expected by the Aladhan timingsByCity endpoint. */
-export function apiDateParam(w: WallDate): string {
-  const mm = String(w.month).padStart(2, '0');
-  const dd = String(w.day).padStart(2, '0');
-  return `${dd}-${mm}-${w.year}`;
-}
-
 export function addDays(w: WallDate, delta: number): WallDate {
   const d = new Date(Date.UTC(w.year, w.month - 1, w.day + delta));
   return { year: d.getUTCFullYear(), month: d.getUTCMonth() + 1, day: d.getUTCDate() };
