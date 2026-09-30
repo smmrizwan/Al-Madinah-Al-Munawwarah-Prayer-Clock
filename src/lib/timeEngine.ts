@@ -112,20 +112,6 @@ export function parseTiming(raw: string): [number, number] {
 /* ------------------------------------------------------------------ */
 
 /**
- * Elapsed milliseconds since the most recent Maghrib.
- * If `nowMs` is before today's Maghrib, the Islamic day started at yesterday's
- * Maghrib; otherwise it started at today's Maghrib.
- */
-export function getIslamicClockTime(
-  nowMs: number,
-  yesterdayMaghribMs: number,
-  todayMaghribMs: number,
-): number {
-  const start = nowMs >= todayMaghribMs ? todayMaghribMs : yesterdayMaghribMs;
-  return Math.max(0, nowMs - start);
-}
-
-/**
  * Build the ordered prayer events of the Islamic day that contains `nowMs`.
  *
  * The day runs Maghrib(D) → Isha(D) → Fajr(D+1) → Sunrise(D+1) → Dhuhr(D+1) →
