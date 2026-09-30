@@ -5,6 +5,7 @@ import {
   estimateMadinahTimings,
   parseTiming,
   riyadhWallDate,
+  toArabicDigits,
   wallDateKey,
   wallToUtcMs,
   type DayData,
@@ -133,5 +134,28 @@ describe('estimateMadinahTimings (solar fallback)', () => {
     const summer = parseTiming(estimateMadinahTimings(day(2026, 6, 21)).Maghrib);
     const winter = parseTiming(estimateMadinahTimings(day(2025, 12, 21)).Maghrib);
     expect(summer[0] * 60 + summer[1]).toBeGreaterThan(winter[0] * 60 + winter[1]);
+  });
+});
+
+describe('toArabicDigits', () => {
+  it('converts number inputs', () => {
+    expect(toArabicDigits(123)).toBe('١٢٣');
+    expect(toArabicDigits(0)).toBe('٠');
+    expect(toArabicDigits(9876543210)).toBe('٩٨٧٦٥٤٣٢١٠');
+  });
+
+  it('converts string inputs with numbers', () => {
+    expect(toArabicDigits('456')).toBe('٤٥٦');
+    expect(toArabicDigits('0')).toBe('٠');
+  });
+
+  it('converts numbers inside mixed strings', () => {
+    expect(toArabicDigits('Year 2026')).toBe('Year ٢٠٢٦');
+    expect(toArabicDigits('1a2b3c')).toBe('١a٢b٣c');
+  });
+
+  it('handles strings with no numbers', () => {
+    expect(toArabicDigits('No numbers here')).toBe('No numbers here');
+    expect(toArabicDigits('')).toBe('');
   });
 });
