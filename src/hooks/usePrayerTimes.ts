@@ -159,7 +159,9 @@ function loadCache(): Map<string, DayData> {
   try {
     const raw = localStorage.getItem(CACHE_KEY);
     if (!raw) return map;
-    const obj = JSON.parse(raw) as Record<string, DayData>;
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return map;
+    const obj = parsed as Record<string, DayData>;
     for (const [key, value] of Object.entries(obj)) {
       // Re-validate cached timings before use; hijri may legitimately be null.
       if (
