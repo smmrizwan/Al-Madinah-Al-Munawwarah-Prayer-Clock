@@ -3,11 +3,13 @@ import {
   addDays,
   buildIslamicDaySchedule,
   estimateMadinahTimings,
+  nextPrayer,
   parseTiming,
   riyadhWallDate,
   wallDateKey,
   wallToUtcMs,
   type DayData,
+  type PrayerEvent,
   type WallDate,
 } from './timeEngine';
 
@@ -133,5 +135,29 @@ describe('estimateMadinahTimings (solar fallback)', () => {
     const summer = parseTiming(estimateMadinahTimings(day(2026, 6, 21)).Maghrib);
     const winter = parseTiming(estimateMadinahTimings(day(2025, 12, 21)).Maghrib);
     expect(summer[0] * 60 + summer[1]).toBeGreaterThan(winter[0] * 60 + winter[1]);
+  });
+});
+
+describe('nextPrayer', () => {
+  const mockEvents = [
+    { timeMs: 1000 } as PrayerEvent,
+    { timeMs: 2000 } as PrayerEvent,
+    { timeMs: 3000 } as PrayerEvent,
+  ];
+
+  it('returns the first event strictly after nowMs', () => {
+    expect(nextPrayer(mockEvents, 500)).toBe(mockEvents[0]); // Before first
+    expect(nextPrayer(mockEvents, 1000)).toBe(mockEvents[1]); // Exactly on first, should return second
+    expect(nextPrayer(mockEvents, 1500)).toBe(mockEvents[1]); // Between first and second
+    expect(nextPrayer(mockEvents, 2000)).toBe(mockEvents[2]); // Exactly on second, should return third
+  });
+
+  it('returns null if no events are strictly after nowMs', () => {
+    expect(nextPrayer(mockEvents, 3000)).toBeNull(); // Exactly on last
+    expect(nextPrayer(mockEvents, 4000)).toBeNull(); // After last
+  });
+
+  it('returns null for an empty events array', () => {
+    expect(nextPrayer([], 1000)).toBeNull();
   });
 });
