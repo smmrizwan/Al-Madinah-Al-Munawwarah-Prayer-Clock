@@ -3,11 +3,14 @@ import {
   addDays,
   buildIslamicDaySchedule,
   estimateMadinahTimings,
+  formatHijriArabic,
+  formatHijriLatin,
   parseTiming,
   riyadhWallDate,
   wallDateKey,
   wallToUtcMs,
   type DayData,
+  type HijriDate,
   type WallDate,
 } from './timeEngine';
 
@@ -55,6 +58,18 @@ describe('parseTiming validation', () => {
     expect(() => parseTiming('24:00')).toThrow();
     expect(() => parseTiming('12:60')).toThrow();
     expect(() => parseTiming('abc')).toThrow();
+  });
+});
+
+describe('formatting', () => {
+  const hijri: HijriDate = { day: '1', monthAr: 'رمضان', monthEn: 'Ramadan', year: '1445' };
+
+  it('formatHijriArabic returns correctly formatted Arabic string', () => {
+    expect(formatHijriArabic(hijri)).toBe('١ رمضان ١٤٤٥هـ');
+  });
+
+  it('formatHijriLatin returns correctly formatted Latin string', () => {
+    expect(formatHijriLatin(hijri)).toBe('1 Ramadan 1445 AH');
   });
 });
 
