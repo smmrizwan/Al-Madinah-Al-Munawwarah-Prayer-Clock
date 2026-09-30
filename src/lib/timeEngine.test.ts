@@ -3,6 +3,7 @@ import {
   addDays,
   buildIslamicDaySchedule,
   estimateMadinahTimings,
+  formatHijriArabic,
   parseTiming,
   riyadhWallDate,
   wallDateKey,
@@ -133,5 +134,17 @@ describe('estimateMadinahTimings (solar fallback)', () => {
     const summer = parseTiming(estimateMadinahTimings(day(2026, 6, 21)).Maghrib);
     const winter = parseTiming(estimateMadinahTimings(day(2025, 12, 21)).Maghrib);
     expect(summer[0] * 60 + summer[1]).toBeGreaterThan(winter[0] * 60 + winter[1]);
+  });
+});
+
+describe('formatHijriArabic', () => {
+  it('formats a standard Hijri date correctly', () => {
+    const hijri = { day: '28', monthAr: 'ربيع الأول', monthEn: 'Rabi al-Awwal', year: '1447' };
+    expect(formatHijriArabic(hijri)).toBe('٢٨ ربيع الأول ١٤٤٧هـ');
+  });
+
+  it('formats a Hijri date with single-digit day correctly', () => {
+    const hijri = { day: '1', monthAr: 'رمضان', monthEn: 'Ramadan', year: '1446' };
+    expect(formatHijriArabic(hijri)).toBe('١ رمضان ١٤٤٦هـ');
   });
 });
