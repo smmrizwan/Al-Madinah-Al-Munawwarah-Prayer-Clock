@@ -3,6 +3,7 @@ import {
   addDays,
   buildIslamicDaySchedule,
   estimateMadinahTimings,
+  formatElapsed,
   parseTiming,
   riyadhWallDate,
   wallDateKey,
@@ -133,5 +134,35 @@ describe('estimateMadinahTimings (solar fallback)', () => {
     const summer = parseTiming(estimateMadinahTimings(day(2026, 6, 21)).Maghrib);
     const winter = parseTiming(estimateMadinahTimings(day(2025, 12, 21)).Maghrib);
     expect(summer[0] * 60 + summer[1]).toBeGreaterThan(winter[0] * 60 + winter[1]);
+  });
+});
+
+describe('formatElapsed', () => {
+  it('formats 0 milliseconds correctly', () => {
+    expect(formatElapsed(0)).toBe('00:00:00');
+  });
+
+  it('formats seconds correctly', () => {
+    expect(formatElapsed(1000)).toBe('00:00:01');
+    expect(formatElapsed(59000)).toBe('00:00:59');
+  });
+
+  it('formats minutes correctly', () => {
+    expect(formatElapsed(60000)).toBe('00:01:00');
+    expect(formatElapsed(3540000)).toBe('00:59:00');
+  });
+
+  it('formats hours correctly', () => {
+    expect(formatElapsed(3600000)).toBe('01:00:00');
+  });
+
+  it('formats mixed hours, minutes, and seconds correctly', () => {
+    expect(formatElapsed(3661000)).toBe('01:01:01');
+    expect(formatElapsed(3600000 * 2 + 60000 * 30 + 1000 * 45)).toBe('02:30:45');
+  });
+
+  it('handles durations greater than 24 hours correctly', () => {
+    expect(formatElapsed(25 * 3600000)).toBe('25:00:00');
+    expect(formatElapsed(100 * 3600000 + 60000 * 5 + 1000 * 9)).toBe('100:05:09');
   });
 });
