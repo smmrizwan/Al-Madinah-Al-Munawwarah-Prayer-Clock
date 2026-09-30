@@ -7,6 +7,7 @@ import {
   riyadhWallDate,
   wallDateKey,
   wallToUtcMs,
+  formatWallTime,
   type DayData,
   type WallDate,
 } from './timeEngine';
@@ -133,5 +134,25 @@ describe('estimateMadinahTimings (solar fallback)', () => {
     const summer = parseTiming(estimateMadinahTimings(day(2026, 6, 21)).Maghrib);
     const winter = parseTiming(estimateMadinahTimings(day(2025, 12, 21)).Maghrib);
     expect(summer[0] * 60 + summer[1]).toBeGreaterThan(winter[0] * 60 + winter[1]);
+  });
+});
+
+describe('formatWallTime', () => {
+  const today = day(2026, 9, 23);
+
+  it('formats midnight correctly', () => {
+    expect(formatWallTime(at(today, '00:00'))).toBe('00:00');
+  });
+
+  it('formats noon correctly', () => {
+    expect(formatWallTime(at(today, '12:00'))).toBe('12:00');
+  });
+
+  it('handles edge case just before midnight', () => {
+    expect(formatWallTime(at(today, '23:59'))).toBe('23:59');
+  });
+
+  it('formats single digits correctly', () => {
+    expect(formatWallTime(at(today, '09:05'))).toBe('09:05');
   });
 });
