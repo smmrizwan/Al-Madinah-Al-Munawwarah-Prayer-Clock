@@ -3,6 +3,7 @@ import {
   addDays,
   buildIslamicDaySchedule,
   estimateMadinahTimings,
+  getIslamicClockTime,
   parseTiming,
   riyadhWallDate,
   wallDateKey,
@@ -44,6 +45,35 @@ function daysAround(center: WallDate): Map<string, { wall: WallDate; data: DayDa
 function at(wall: WallDate, hhmm: string): number {
   return wallToUtcMs(wall, hhmm);
 }
+
+describe('getIslamicClockTime', () => {
+  it('returns elapsed time since yesterdayMaghrib when now is before todayMaghrib', () => {
+    const yesterdayMaghribMs = 1000;
+    const todayMaghribMs = 2000;
+    const nowMs = 1500;
+    expect(getIslamicClockTime(nowMs, yesterdayMaghribMs, todayMaghribMs)).toBe(500);
+  });
+
+  it('returns elapsed time since todayMaghrib when now is at or after todayMaghrib', () => {
+    const yesterdayMaghribMs = 1000;
+    const todayMaghribMs = 2000;
+
+    // Exactly at todayMaghrib
+    expect(getIslamicClockTime(2000, yesterdayMaghribMs, todayMaghribMs)).toBe(0);
+
+    // After todayMaghrib
+    expect(getIslamicClockTime(2500, yesterdayMaghribMs, todayMaghribMs)).toBe(500);
+  });
+
+  it('returns 0 when now is before yesterdayMaghrib (failsafe)', () => {
+    const yesterdayMaghribMs = 1000;
+    const todayMaghribMs = 2000;
+    const nowMs = 500; // Before yesterday's Maghrib
+
+    // start should be yesterdayMaghribMs (1000), but now (500) - 1000 = -500, so Math.max(0, -500) is 0
+    expect(getIslamicClockTime(nowMs, yesterdayMaghribMs, todayMaghribMs)).toBe(0);
+  });
+});
 
 describe('parseTiming validation', () => {
   it('accepts normal and Aladhan-suffixed times', () => {
