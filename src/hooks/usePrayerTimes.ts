@@ -190,24 +190,28 @@ function saveCache(cache: Map<string, DayData>): void {
 
 /* ------------------------------ static estimate ------------------------------ */
 
+const arFormatter = new Intl.DateTimeFormat('ar-SA-u-ca-islamic-umalqura', {
+  timeZone: 'Asia/Riyadh',
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric',
+});
+
+const enFormatter = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura', {
+  timeZone: 'Asia/Riyadh',
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric',
+});
+
 /** Hijri date (Umm al-Qura) for a specific Madinah wall date, via Intl. */
 function fallbackHijriForWall(wall: WallDate): HijriDate | null {
   try {
     // Noon in Madinah on that date — safely inside the day for both calendars.
     const ms = Date.UTC(wall.year, wall.month - 1, wall.day, 9); // 12:00 Asia/Riyadh
     const toLatin = (s: string) => s.replace(/[٠-٩]/g, (d) => String('٠١٢٣٤٥٦٧٨٩'.indexOf(d)));
-    const arParts = new Intl.DateTimeFormat('ar-SA-u-ca-islamic-umalqura', {
-      timeZone: 'Asia/Riyadh',
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-    }).formatToParts(new Date(ms));
-    const enParts = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura', {
-      timeZone: 'Asia/Riyadh',
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-    }).formatToParts(new Date(ms));
+    const arParts = arFormatter.formatToParts(new Date(ms));
+    const enParts = enFormatter.formatToParts(new Date(ms));
     const get = (parts: Intl.DateTimeFormatPart[], t: string) =>
       parts.find((p) => p.type === t)?.value ?? '';
     return {
