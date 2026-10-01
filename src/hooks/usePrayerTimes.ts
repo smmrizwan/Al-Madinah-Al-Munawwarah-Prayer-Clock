@@ -107,33 +107,54 @@ function delay(ms: number, signal: AbortSignal): Promise<void> {
   });
 }
 
+const _monthPromises = new Map<string, Promise<DayData[]>>();
+
 /** One HTTP request = a whole month of Madinah timings (fix 1.3). */
 async function fetchMonthOnce(year: number, month: number, outerSignal: AbortSignal): Promise<DayData[]> {
-  const url = `https://api.aladhan.com/v1/calendarByCity/${year}/${month}?city=Madinah&country=Saudi%20Arabia&method=4`;
-  // The timeout covers the FULL exchange — headers AND body download/parse —
-  // so a stalled response body can never hang the refresh.
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
-  const onOuterAbort = () => controller.abort();
-  outerSignal.addEventListener('abort', onOuterAbort, { once: true });
-  try {
-    const res = await fetch(url, { signal: controller.signal });
-    if (!res.ok) throw new Error(`Aladhan HTTP ${res.status}`);
-    const json = (await res.json()) as AladhanCalendarResponse;
-    if (json?.code !== 200 || !Array.isArray(json.data)) {
-      throw new Error('Aladhan: malformed calendar response');
-    }
-    const days: DayData[] = [];
-    for (const entry of json.data) {
-      const parsed = parseCalendarDay(entry);
-      if (parsed) days.push(parsed);
-    }
-    if (days.length === 0) throw new Error('Aladhan: no usable days in calendar');
-    return days;
-  } finally {
-    clearTimeout(timeout);
-    outerSignal.removeEventListener('abort', onOuterAbort);
+  const cacheKey = `${year}-${month}`;
+  let promise = _monthPromises.get(cacheKey);
+
+  if (!promise) {
+    promise = (async () => {
+      const url = `https://api.aladhan.com/v1/calendarByCity/${year}/${month}?city=Madinah&country=Saudi%20Arabia&method=4`;
+      // The timeout covers the FULL exchange — headers AND body download/parse —
+      // so a stalled response body can never hang the refresh.
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+      try {
+        const res = await fetch(url, { signal: controller.signal });
+        if (!res.ok) throw new Error(`Aladhan HTTP ${res.status}`);
+        const json = (await res.json()) as AladhanCalendarResponse;
+        if (json?.code !== 200 || !Array.isArray(json.data)) {
+          throw new Error('Aladhan: malformed calendar response');
+        }
+        const days: DayData[] = [];
+        for (const entry of json.data) {
+          const parsed = parseCalendarDay(entry);
+          if (parsed) days.push(parsed);
+        }
+        if (days.length === 0) throw new Error('Aladhan: no usable days in calendar');
+        return days;
+      } catch (err) {
+        _monthPromises.delete(cacheKey);
+        throw err;
+      } finally {
+        clearTimeout(timeout);
+      }
+    })();
+    _monthPromises.set(cacheKey, promise);
   }
+
+  return new Promise<DayData[]>((resolve, reject) => {
+    if (outerSignal.aborted) {
+      return reject(new DOMException('Aborted', 'AbortError'));
+    }
+    const onAbort = () => reject(new DOMException('Aborted', 'AbortError'));
+    outerSignal.addEventListener('abort', onAbort, { once: true });
+    promise!.then(resolve, reject).finally(() => {
+      outerSignal.removeEventListener('abort', onAbort);
+    });
+  });
 }
 
 /** Bounded retries with linear backoff; honours cancellation. */
