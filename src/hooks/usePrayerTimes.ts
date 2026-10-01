@@ -108,7 +108,7 @@ function delay(ms: number, signal: AbortSignal): Promise<void> {
 }
 
 /** One HTTP request = a whole month of Madinah timings (fix 1.3). */
-async function fetchMonthOnce(year: number, month: number, outerSignal: AbortSignal): Promise<DayData[]> {
+export async function fetchMonthOnce(year: number, month: number, outerSignal: AbortSignal): Promise<DayData[]> {
   const url = `https://api.aladhan.com/v1/calendarByCity/${year}/${month}?city=Madinah&country=Saudi%20Arabia&method=4`;
   // The timeout covers the FULL exchange — headers AND body download/parse —
   // so a stalled response body can never hang the refresh.
