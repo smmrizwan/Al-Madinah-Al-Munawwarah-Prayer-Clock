@@ -61,14 +61,18 @@ interface AladhanCalendarResponse {
  * Returns null on any irregularity.
  */
 function parseHijri(h: AladhanDay['date']['hijri'] | undefined): HijriDate | null {
-  const day = String(h?.day ?? '').trim();
-  const monthAr = String(h?.month?.ar ?? '').trim();
-  const monthEn = String(h?.month?.en ?? '').trim();
-  const year = String(h?.year ?? '').trim();
-  if (!/^(0?[1-9]|[12]\d|30)$/.test(day)) return null;
-  if (!monthAr || !monthEn) return null;
-  if (!/^\d{3,4}$/.test(year)) return null;
-  return { day, monthAr, monthEn, year };
+  try {
+    const day = String(h?.day ?? '').trim();
+    const monthAr = String(h?.month?.ar ?? '').trim();
+    const monthEn = String(h?.month?.en ?? '').trim();
+    const year = String(h?.year ?? '').trim();
+    if (!/^(0?[1-9]|[12]\d|30)$/.test(day)) return null;
+    if (!monthAr || !monthEn) return null;
+    if (!/^\d{3,4}$/.test(year)) return null;
+    return { day, monthAr, monthEn, year };
+  } catch {
+    return null;
+  }
 }
 
 /** Validate one calendar day entry. Returns null (skip that day) if its timings are unusable. */
@@ -90,7 +94,11 @@ function parseCalendarDay(entry: AladhanDay): DayData | null {
     if (hh > 23 || mm > 59) return null;
     timings[key] = `${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`;
   }
-  return { gregKey, timings, hijri: parseHijri(entry.date?.hijri) };
+  let hijri = parseHijri(entry.date?.hijri);
+  if (!hijri) {
+    hijri = { day: '', monthAr: '', monthEn: '', year: '' };
+  }
+  return { gregKey, timings, hijri };
 }
 
 function delay(ms: number, signal: AbortSignal): Promise<void> {
