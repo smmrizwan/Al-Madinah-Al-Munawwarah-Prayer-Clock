@@ -207,7 +207,17 @@ export function nextPrayer(events: PrayerEvent[], nowMs: number): PrayerEvent | 
 const AR_DIGITS = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
 
 export function toArabicDigits(value: number | string): string {
-  return String(value).replace(/\d/g, (d) => AR_DIGITS[Number(d)]);
+  const str = String(value);
+  let res = '';
+  for (let i = 0; i < str.length; i++) {
+    const code = str.charCodeAt(i);
+    if (code >= 48 && code <= 57) {
+      res += AR_DIGITS[code - 48];
+    } else {
+      res += str[i];
+    }
+  }
+  return res;
 }
 
 /** Elapsed ms → HH:MM:SS (HH may exceed 23 near the end of a long Islamic day). */
